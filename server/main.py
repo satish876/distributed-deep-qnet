@@ -1,9 +1,14 @@
 from flask import Flask, Response, jsonify, request, render_template
+import modman
 
 
 # GLOBAL VARS
 CENTRAL_MODEL = {}
+LEARNING_RATE = 0
 ITERATION = 0
+
+# LOCK VAR
+MODEL_LOCK = False
 
 
 app = Flask(__name__)
@@ -22,19 +27,34 @@ def get_model():
         'params': CENTRAL_MODEL,
         'iteration': ITERATION
     }
+
+    # Waiting for MODEL UPDATES
+    global MODEL_LOCK
+    while MODEL_LOCK:
+        print("WAITING FOR MODEL UPDATE!!!")
+
     return jsonify(payload)
 
 
 @app.route('/api/model/update', methods=['POST'])
 def update_model():
-    updateParams = request.json
+    update_params = request.json
 
     global CENTRAL_MODEL
+    global LEARNING_RATE
     global ITERATION
+
+    # Update ITERATION
     ITERATION += 1
 
-    CENTRAL_MODEL = updateParams
+    # Apply Gradients and Update CENTRAL MODEL
+    global MODEL_LOCK
+    MODEL_LOCK = True
+    CENTRAL_MODEL = modman.update_model(
+        update_params, CENTRAL_MODEL, LEARNING_RATE)
+    MODEL_LOCK = False
 
+    # RETURN RESPONSE
     return Response("Updated", status=200)
 
 
