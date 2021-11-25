@@ -42,6 +42,7 @@ def update_model():
 
     global CENTRAL_MODEL
     global ITERATION
+    global LEARNING_RATE
 
     # Update ITERATION
     ITERATION += 1
@@ -49,7 +50,8 @@ def update_model():
     # Set CENTRAL MODEL params
     global MODEL_LOCK
     MODEL_LOCK = True
-    CENTRAL_MODEL = params
+    CENTRAL_MODEL = params['model']
+    LEARNING_RATE = params['learning_rate']
     MODEL_LOCK = False
 
     # RETURN RESPONSE
