@@ -5,7 +5,7 @@ import modman
 # GLOBAL VARS
 CENTRAL_MODEL = {}
 LEARNING_RATE = 0
-ITERATION = 0
+ITERATION = -1
 
 # LOCK VAR
 MODEL_LOCK = False
@@ -36,6 +36,26 @@ def get_model():
     return jsonify(payload)
 
 
+@app.route('/api/model/set', methods=['POST'])
+def update_model():
+    params = request.json
+
+    global CENTRAL_MODEL
+    global ITERATION
+
+    # Update ITERATION
+    ITERATION += 1
+
+    # Set CENTRAL MODEL params
+    global MODEL_LOCK
+    MODEL_LOCK = True
+    CENTRAL_MODEL = params
+    MODEL_LOCK = False
+
+    # RETURN RESPONSE
+    return jsonify({'iteration': ITERATION, 'Message': 'Model Params Set.'})
+
+
 @app.route('/api/model/update', methods=['POST'])
 def update_model():
     update_params = request.json
@@ -55,7 +75,7 @@ def update_model():
     MODEL_LOCK = False
 
     # RETURN RESPONSE
-    return Response("Updated", status=200)
+    return jsonify({'iteration': ITERATION, 'Message': 'Updated Model Params.'})
 
 
 if __name__ == "__main__":
