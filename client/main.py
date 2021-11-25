@@ -175,10 +175,10 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
 
             # Send Gradients to Server
             reply = modman.send_model_update(URL + 'update', grads)
-            print(reply)
+            # print(reply)
 
             # Get Updated Model Params from Server
-            global_params, is_available = modman.fetch_params(URL)
+            global_params, is_available = modman.fetch_params(URL + 'get')
             pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
 
     # P("after explore epoch#:",epoch)
