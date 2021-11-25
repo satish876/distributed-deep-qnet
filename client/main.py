@@ -140,8 +140,8 @@ global_params, is_available = modman.fetch_params(URL + 'get')
 if is_available:
     pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
 else:
-    reply = modman.send_model_update(
-        URL + 'set', modman.convert_tensor_to_list(pie.Q.state_dict()))
+    reply = modman.send_model_params(
+        URL + 'set', modman.convert_tensor_to_list(pie.Q.state_dict()), PIE_PARAMS.LR)
     print(reply)
 
 ##############################################

@@ -29,6 +29,23 @@ def send_model_update(url: str, grads: dict):
 
     return data
 
+# Send Trained Model Gradients (StateDict)
+
+
+def send_model_params(url: str, params: dict, lr: float):
+    body = {
+        'model': params,
+        'learning_rate': lr
+    }
+
+    # Send POST request
+    r = requests.post(url=url, data=body)
+
+    # Extract data in json format
+    data = r.json()
+
+    return data
+
 
 # Convert State Dict List to Tensor
 def convert_list_to_tensor(params: dict) -> dict:
