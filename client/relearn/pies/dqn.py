@@ -145,36 +145,21 @@ class PIE:
         self.optimizer.zero_grad()
         loss.backward()
 
+        grad_dict = {}
         grads = []
-        # for param in self.Q.named_parameters():
-        #     grads.append(param)
+        params = []
+        for param in self.Q.named_parameters():
+            params.append(param[1])
+            grads.append(param[1].grad)
+            grad_dict[param[0]] = param[1].grad.tolist()
 
-        # self.optimizer.step()
-        #########################################################################
-        # Manual Optimization Step
-        #########################################################################
+        with T.no_grad():
+            for i, param in enumerate(params):
 
-        for group in self.optimizer.param_groups:
-            params_with_grad = []
-            d_p_list = []
-            lr = group['lr']
-            maximize = False
+                d_p = deepcopy(grads[i])
 
-            for p in group['params']:
-                if p.grad is not None:
-                    params_with_grad.append(p)
-                    d_p_list.append(p.grad)
-                    grads.append(deepcopy(p.grad.detach().clone()))
-
-            with T.no_grad():
-                for i, param in enumerate(params_with_grad):
-
-                    d_p = deepcopy(d_p_list[i])
-
-                    alpha = lr if maximize else -lr
-                    param.add_(d_p, alpha=alpha)
-
-        #########################################################################
+                alpha = -self.lr
+                param.add_(d_p, alpha=alpha)
 
         self.train_count += 1
 
@@ -183,7 +168,7 @@ class PIE:
                 self.T.load_state_dict(self.Q.state_dict())
                 self.update_count += 1
 
-        return grads
+        return grad_dict
 
     def render(self, mode=0, p=print):
         p('=-=-=-=-==-=-=-=-=\nQ-NET\n=-=-=-=-==-=-=-=-=')

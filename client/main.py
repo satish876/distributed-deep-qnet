@@ -140,8 +140,9 @@ global_params, is_available = modman.fetch_params(URL + 'get')
 if is_available:
     pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
 else:
-    modman.send_model_update(
+    reply = modman.send_model_update(
         URL + 'set', modman.convert_tensor_to_list(pie.Q.state_dict()))
+    print(reply)
 
 ##############################################
 # Training
@@ -173,7 +174,8 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
             grads = pie.learn(exp.memory, TRAIN_PARAMS.BATCH_SIZE)
 
             # Send Gradients to Server
-            modman.send_model_update(URL + 'update', grads)
+            reply = modman.send_model_update(URL + 'update', grads)
+            print(reply)
 
             # Get Updated Model Params from Server
             global_params, is_available = modman.fetch_params(URL)

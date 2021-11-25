@@ -32,15 +32,17 @@ def send_model_update(url: str, grads: dict):
 
 # Convert State Dict List to Tensor
 def convert_list_to_tensor(params: dict) -> dict:
+    params_ = {}
     for key in params.keys():
-        params[key] = torch.tensor(params[key], dtype=torch.float32)
+        params_[key] = torch.tensor(params[key], dtype=torch.float32)
 
-    return params
+    return params_
 
 
 # Convert State Dict Tensors to List
 def convert_tensor_to_list(params: dict) -> dict:
+    params_ = {}
     for key in params.keys():
-        params[key] = params[key].tolist()
+        params_[key] = params[key].tolist()
 
-    return params
+    return params_
