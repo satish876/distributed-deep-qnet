@@ -37,7 +37,7 @@ def get_model():
 
 
 @app.route('/api/model/set', methods=['POST'])
-def update_model():
+def set_model():
     params = request.json
 
     global CENTRAL_MODEL
