@@ -22,7 +22,7 @@ def send_model_update(url: str, grads: dict):
     body = grads
 
     # Send POST request
-    r = requests.post(url=url, data=body)
+    r = requests.post(url=url, json=body)
 
     # Extract data in json format
     data = r.json()
@@ -39,7 +39,7 @@ def send_model_params(url: str, params: dict, lr: float):
     }
 
     # Send POST request
-    r = requests.post(url=url, data=body)
+    r = requests.post(url=url, json=body)
 
     # Extract data in json format
     data = r.json()

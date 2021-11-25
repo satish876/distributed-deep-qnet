@@ -31,14 +31,14 @@ def get_model():
     # Waiting for MODEL UPDATES
     global MODEL_LOCK
     while MODEL_LOCK:
-        print("WAITING FOR MODEL UPDATE!!!")
+        pass
 
     return jsonify(payload)
 
 
 @app.route('/api/model/set', methods=['POST'])
 def set_model():
-    params = request.json
+    params = request.get_json()
 
     global CENTRAL_MODEL
     global ITERATION
