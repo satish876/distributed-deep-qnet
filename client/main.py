@@ -236,7 +236,7 @@ P('Time Elapsed:', elapse)
 ##############################################
 # Save Model And Training Log
 ##############################################
-save_instance_path = f'./logs/{ENV_NAME}_{stamp.strftime("%d_%m_%Y")}'
+save_instance_path = f'./logs/{ENV_NAME}_{stamp.strftime("%d_%m_%Y-%H_%M_%S")}'
 
 # Save Model
 pie.save(save_instance_path + '.pt')
