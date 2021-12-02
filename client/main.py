@@ -198,22 +198,8 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
                         print("Loading gloabl parama ....")
                     pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
                     pie.Q.eval()
-                    # pie.T.load_state_dict(modman.convert_list_to_tensor(global_params))
-                    # pie.T.eval()
                 else:
                     P("Model not avalable: Error!")
-#             else:
-#                 P("Fetching model Params .....")
-#                 global_params, is_available = modman.fetch_params(URL + 'get')
-#                 P(".... Fetched model Params .....")
-#                 if is_available:
-#                     print("Loading gloabl parama ....")
-#                     pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
-#                     pie.Q.eval()
-#                     # pie.T.load_state_dict(modman.convert_list_to_tensor(global_params))
-#                     # pie.T.eval()
-#                 else:
-#                     P("Model not avalable: Error!")
 
     # P("after explore epoch#:",epoch)
     if epoch == 0 or (epoch+1) % TRAIN_PARAMS.TEST_FREQ == 0:
@@ -223,11 +209,11 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
         res = txp.summary(P=lambda *arg: None)
         trew = res[-1]
         ref.append([trew])
-        #print('before queue')
+
         if(max_reward1.full()):
             max_reward1.get()
         max_reward1.put(trew)
-        #print('after queue')
+
         P('[#]'+str(epoch+1), '\t',
             '[REW]'+str(trew),
             '[TR]'+str(pie.train_count),

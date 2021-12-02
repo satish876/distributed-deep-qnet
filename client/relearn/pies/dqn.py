@@ -4,8 +4,7 @@ import numpy as np
 
 import torch as T
 import torch.nn as nn
-#import torch.optim as optim
-#import torch.nn.functional as F
+
 from relearn.pies.utils import RMSprop_update
 from copy import deepcopy
 
@@ -13,7 +12,7 @@ from copy import deepcopy
 class QnetRELUn(nn.Module):
     def __init__(self, state_dim, LL, action_dim):
         super(QnetRELUn, self).__init__()
-        #self.flatten = nn.Flatten()
+        
         self.n_layers = len(LL)
         if self.n_layers < 1:
             raise ValueError('need at least 1 layers')
@@ -102,7 +101,7 @@ class PIE:
 
     def _prepare_batch(self, memory, size):
         batch = memory.sample(size)
-        #print("Batch", batch)
+        
         steps = len(batch)
         cS, nS, act, reward, done = [], [], [], [], []
         for i in batch:
@@ -148,22 +147,19 @@ class PIE:
         grad_dict = {}
         grads = []
         params_with_grad=[]
-#         params = []
+
         square_avgs = []
         lr=0.01
         alpha=0.9
         eps=0
         weight_decay=0
-#         for param in self.Q.named_parameters():
-#             params.append(param[1])
-#             grads.append(param[1].grad)
-#             grad_dict[param[0]] = param[1].grad.data.detach().clone().tolist()
+
         for group in self.optimizer.param_groups:
             lr=group['lr']
             alpha=group['alpha']
             eps=group['eps']
             weight_decay=group['weight_decay']
-#             print("Lr: ", lr, "alpha: ", alpha, "eps: ", eps, "Weight-decay: ", weight_decay, "Centered: ", group['centered'])
+
             for p in group['params']:
                 if p.grad is None:
                     continue
@@ -186,7 +182,7 @@ class PIE:
                     lr,
                     eps,                 
                     alpha)
-#         self.optimizer.step()
+
 
 
         self.train_count += 1

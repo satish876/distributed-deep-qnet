@@ -5,7 +5,7 @@ def RMSprop_update(params,
                     lr,
                     eps,
                     alpha):
-    r"""Functional API that performs rmsprop algorithm computation.
+    """Functional API that performs rmsprop algorithm computation.
     See :class:`~torch.optim.RMSProp` for details.
     """
 

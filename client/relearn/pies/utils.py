@@ -7,8 +7,8 @@ def compare_weights(weights1, weights2):
     names1 = []
     names2 = []
     if(len(w1) != len(w2)):
-        #print("Models arcitecture not same: ",len(w1), len(w2) )
         return False
+    
     for x in (w1):
         names1.append(x)
     for y in (w2):
@@ -20,10 +20,11 @@ def compare_weights(weights1, weights2):
                 count += 1
                 continue
             else:
-                #print("Weights are different")
                 return False
+    
         print("Total dict:", count)
         return True
+
 @torch.no_grad()   
 def RMSprop_update(params,
                     grads,

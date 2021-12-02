@@ -5,8 +5,6 @@ from os import getpid
 debug = False
 
 # Fetch Latest Model Params (StateDict)
-
-
 def fetch_params(url: str):
     # Send GET request
     r = requests.get(url=url)

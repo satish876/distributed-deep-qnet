@@ -3,11 +3,12 @@ import modman
 import numpy as np
 import torch
 
-# GLOBAL VARS
+# GLOBAL MODEL VARS
 CENTRAL_MODEL = {}
 LEARNING_RATE = 0
 ITERATION = -1
 SQUARE_AVGS = {}
+
 # LOCK VAR
 MODEL_LOCK = False
 
@@ -91,14 +92,11 @@ def update_model():
     for key, value in CENTRAL_MODEL.items():
         params.append(value)
         square_avgs.append(SQUARE_AVGS[key])
-#         grads.append(torch.Tensor(update_params[key]))
+
     # Apply Gradients and Update CENTRAL MODEL
     grads = update_params['grads']
     global MODEL_LOCK
     MODEL_LOCK = True
-#     CENTRAL_MODEL = modman.update_model(
-#         update_params, CENTRAL_MODEL, LEARNING_RATE)
-#     print("before update params->", params[0])
     update_model = modman.RMSprop_update(params,
                                          grads,
                                          square_avgs,
@@ -106,11 +104,6 @@ def update_model():
                                          lr,
                                          eps,
                                          alpha)
-#     print("after update params->", update_model[0])
-#     i=-1
-#     for key, value in CENTRAL_MODEL.items():
-#         i+=1
-#         value = Update_MODEL[i]
     MODEL_LOCK = False
 
     # RETURN RESPONSE
