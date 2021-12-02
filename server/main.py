@@ -40,6 +40,9 @@ def get_model():
 def set_model():
     params = request.get_json()
 
+    print(
+        f'Got Model Params from Client ID = {params["pid"]} IP Address = {request.remote_addr}')
+
     global CENTRAL_MODEL
     global ITERATION
     global LEARNING_RATE
@@ -60,7 +63,10 @@ def set_model():
 
 @app.route('/api/model/update', methods=['POST'])
 def update_model():
-    update_params = request.json
+    update_params = request.get_json()
+
+    print(
+        f'Got Gradients from Client ID = {update_params["pid"]} IP Address = {request.remote_addr}')
 
     global CENTRAL_MODEL
     global LEARNING_RATE
@@ -73,7 +79,7 @@ def update_model():
     global MODEL_LOCK
     MODEL_LOCK = True
     CENTRAL_MODEL = modman.update_model(
-        update_params, CENTRAL_MODEL, LEARNING_RATE)
+        update_params['grads'], CENTRAL_MODEL, LEARNING_RATE)
     MODEL_LOCK = False
 
     # RETURN RESPONSE
