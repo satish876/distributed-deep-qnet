@@ -41,6 +41,9 @@ def get_model():
 def set_model():
     params = request.get_json()
 
+    print(
+        f'Got Model Params from Client ID = {params["pid"]} IP Address = {request.remote_addr}')
+
     global CENTRAL_MODEL
     global ITERATION
     global LEARNING_RATE
@@ -53,10 +56,11 @@ def set_model():
     MODEL_LOCK = True
     set_model = params['model']
     LEARNING_RATE = params['learning_rate']
-    if ITERATION <=0:
-        for key, value in set_model.items(): 
-            CENTRAL_MODEL[key]=torch.Tensor(value)
-            SQUARE_AVGS[key] = torch.zeros_like(CENTRAL_MODEL[key], memory_format=torch.preserve_format)
+    if ITERATION <= 0:
+        for key, value in set_model.items():
+            CENTRAL_MODEL[key] = torch.Tensor(value)
+            SQUARE_AVGS[key] = torch.zeros_like(
+                CENTRAL_MODEL[key], memory_format=torch.preserve_format)
     MODEL_LOCK = False
 
     # RETURN RESPONSE
@@ -65,7 +69,10 @@ def set_model():
 
 @app.route('/api/model/update', methods=['POST'])
 def update_model():
-    update_params = request.json
+    update_params = request.get_json()
+
+    print(
+        f'Got Gradients from Client ID = {update_params["pid"]} IP Address = {request.remote_addr}')
 
     global CENTRAL_MODEL
     global LEARNING_RATE
@@ -74,31 +81,31 @@ def update_model():
 
     # Update ITERATION
     ITERATION += 1
-    params=[]
-    grads=[]
-    square_avgs=[]
-    alpha=0.99
-    weight_decay=0
-    eps=1e-8
-    lr=LEARNING_RATE
+    params = []
+    grads = []
+    square_avgs = []
+    alpha = 0.99
+    weight_decay = 0
+    eps = 1e-8
+    lr = LEARNING_RATE
     for key, value in CENTRAL_MODEL.items():
         params.append(value)
         square_avgs.append(SQUARE_AVGS[key])
 #         grads.append(torch.Tensor(update_params[key]))
     # Apply Gradients and Update CENTRAL MODEL
-    grads = update_params
+    grads = update_params['grads']
     global MODEL_LOCK
     MODEL_LOCK = True
 #     CENTRAL_MODEL = modman.update_model(
 #         update_params, CENTRAL_MODEL, LEARNING_RATE)
 #     print("before update params->", params[0])
     update_model = modman.RMSprop_update(params,
-                    grads,
-                    square_avgs,
-                    weight_decay,
-                    lr,
-                    eps,                 
-                    alpha)
+                                         grads,
+                                         square_avgs,
+                                         weight_decay,
+                                         lr,
+                                         eps,
+                                         alpha)
 #     print("after update params->", update_model[0])
 #     i=-1
 #     for key, value in CENTRAL_MODEL.items():
