@@ -22,6 +22,9 @@ debug = False
 
 now = datetime.datetime.now
 
+# Logging CSV String
+LOG_CSV = 'epoch,reward,tr,up\n'
+
 ##############################################
 # SETUP Hyperparameters
 ##############################################
@@ -48,7 +51,7 @@ EXP_PARAMS.DECAY_ADD = 0
 
 PIE_PARAMS = INFRA()
 PIE_PARAMS.LAYERS = [128, 128, 128]
-PIE_PARAMS.OPTIM = torch.optim.RMSprop #SGD
+PIE_PARAMS.OPTIM = torch.optim.RMSprop  # SGD
 PIE_PARAMS.LOSS = torch.nn.MSELoss
 PIE_PARAMS.LR = 0.001
 PIE_PARAMS.DISCOUNT = 0.999999
@@ -161,8 +164,8 @@ P('Start Training...')
 stamp = now()
 eps = []
 ref = []
-n_send=1
-n_fetch=1
+n_send = 1
+n_fetch = 1
 max_reward1 = Queue(maxsize=100)
 
 P('after max_reward queue')
@@ -182,12 +185,12 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
             grads = pie.learn(exp.memory, TRAIN_PARAMS.BATCH_SIZE)
 
             # Send Gradients to Server
-            if((epoch+1)%n_send==0):
+            if((epoch+1) % n_send == 0):
                 reply = modman.send_model_update(URL + 'update', grads)
             # print(reply)
 
             # Get Updated Model Params from Server
-            if((epoch+1)%n_fetch==0):
+            if((epoch+1) % n_fetch == 0):
                 if debug:
                     P("Fetching model Params .....")
                 global_params, is_available = modman.fetch_params(URL + 'get')
@@ -196,7 +199,8 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
                 if is_available:
                     if debug:
                         print("Loading gloabl parama ....")
-                    pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
+                    pie.Q.load_state_dict(
+                        modman.convert_list_to_tensor(global_params))
                     pie.Q.eval()
                 else:
                     P("Model not avalable: Error!")
@@ -219,6 +223,8 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
             '[TR]'+str(pie.train_count),
             '[UP]'+str(pie.update_count))
 
+        LOG_CSV += f'{str(epoch+1)},{str(trew)},{str(pie.train_count)},{str(pie.update_count)}\n'
+
         if(max_reward1.full()):
             if(np.mean(max_reward1.queue) >= 200):
                 break
@@ -226,3 +232,15 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
 P('Finished Training!')
 elapse = now() - stamp
 P('Time Elapsed:', elapse)
+
+##############################################
+# Save Model And Training Log
+##############################################
+save_instance_path = f'./logs/{ENV_NAME}_{stamp.strftime("%d_%m_%Y")}'
+
+# Save Model
+pie.save(save_instance_path + '.pt')
+
+# Save Training Log
+with open(save_instance_path + '.csv', 'w') as f:
+    f.write(LOG_CSV)
