@@ -1,7 +1,6 @@
 import torch
 import requests
-from os import getpid
-
+debug = False
 
 # Fetch Latest Model Params (StateDict)
 def fetch_params(url: str):
@@ -15,15 +14,14 @@ def fetch_params(url: str):
     if data['iteration'] == -1:
         return {}, False
     else:
+        if debug:
+            print("Global Iteration", data['iteration'])
         return data['params'], True
 
 
 # Send Trained Model Gradients (StateDict)
 def send_model_update(url: str, grads: dict):
-    body = {
-        'grads': grads,
-        'pid': getpid()
-    }
+    body = grads
 
     # Send POST request
     r = requests.post(url=url, json=body)
@@ -39,8 +37,7 @@ def send_model_update(url: str, grads: dict):
 def send_model_params(url: str, params: dict, lr: float):
     body = {
         'model': params,
-        'learning_rate': lr,
-        'pid': getpid()
+        'learning_rate': lr
     }
 
     # Send POST request

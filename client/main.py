@@ -9,6 +9,7 @@ import torch
 import relearn.pies.dqn as DQN
 from relearn.explore import EXP, MEM
 from relearn.pies.utils import compare_weights
+from relearn.pies.utils import RMSprop_update
 
 import modman
 
@@ -17,6 +18,7 @@ import gym
 
 from copy import deepcopy
 
+debug = False
 
 now = datetime.datetime.now
 
@@ -46,7 +48,7 @@ EXP_PARAMS.DECAY_ADD = 0
 
 PIE_PARAMS = INFRA()
 PIE_PARAMS.LAYERS = [128, 128, 128]
-PIE_PARAMS.OPTIM = torch.optim.SGD
+PIE_PARAMS.OPTIM = torch.optim.RMSprop #SGD
 PIE_PARAMS.LOSS = torch.nn.MSELoss
 PIE_PARAMS.LR = 0.001
 PIE_PARAMS.DISCOUNT = 0.999999
@@ -61,7 +63,7 @@ TRAIN_PARAMS.EPISODIC = False
 TRAIN_PARAMS.MIN_MEM = 30
 TRAIN_PARAMS.LEARN_STEPS = 1
 TRAIN_PARAMS.BATCH_SIZE = 50
-TRAIN_PARAMS.TEST_FREQ = 50
+TRAIN_PARAMS.TEST_FREQ = 20
 
 TEST_PARAMS = INFRA()
 TEST_PARAMS.CERF = 100
@@ -138,8 +140,15 @@ target = DQN.PIE(
 global_params, is_available = modman.fetch_params(URL + 'get')
 
 if is_available:
+    P("Model exist")
+    P("Loading Q params .....")
     pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
+    pie.Q.eval()
+    P("Loading T params .....")
+    pie.T.load_state_dict(pie.Q.state_dict())
+    pie.T.eval()
 else:
+    P("Setting model for server")
     reply = modman.send_model_params(
         URL + 'set', modman.convert_tensor_to_list(pie.Q.state_dict()), PIE_PARAMS.LR)
     print(reply)
@@ -152,10 +161,9 @@ P('Start Training...')
 stamp = now()
 eps = []
 ref = []
-
+n_send=1
+n_fetch=1
 max_reward1 = Queue(maxsize=100)
-max_reward2 = Queue(maxsize=4)
-max_reward3 = Queue(maxsize=4)
 
 P('after max_reward queue')
 exp.reset(clear_mem=True, reset_epsilon=True)
@@ -174,12 +182,38 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
             grads = pie.learn(exp.memory, TRAIN_PARAMS.BATCH_SIZE)
 
             # Send Gradients to Server
-            reply = modman.send_model_update(URL + 'update', grads)
+            if((epoch+1)%n_send==0):
+                reply = modman.send_model_update(URL + 'update', grads)
             # print(reply)
 
             # Get Updated Model Params from Server
-            global_params, is_available = modman.fetch_params(URL + 'get')
-            pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
+            if((epoch+1)%n_fetch==0):
+                if debug:
+                    P("Fetching model Params .....")
+                global_params, is_available = modman.fetch_params(URL + 'get')
+                if debug:
+                    P(".... Fetched model Params .....")
+                if is_available:
+                    if debug:
+                        print("Loading gloabl parama ....")
+                    pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
+                    pie.Q.eval()
+                    # pie.T.load_state_dict(modman.convert_list_to_tensor(global_params))
+                    # pie.T.eval()
+                else:
+                    P("Model not avalable: Error!")
+#             else:
+#                 P("Fetching model Params .....")
+#                 global_params, is_available = modman.fetch_params(URL + 'get')
+#                 P(".... Fetched model Params .....")
+#                 if is_available:
+#                     print("Loading gloabl parama ....")
+#                     pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
+#                     pie.Q.eval()
+#                     # pie.T.load_state_dict(modman.convert_list_to_tensor(global_params))
+#                     # pie.T.eval()
+#                 else:
+#                     P("Model not avalable: Error!")
 
     # P("after explore epoch#:",epoch)
     if epoch == 0 or (epoch+1) % TRAIN_PARAMS.TEST_FREQ == 0:
@@ -200,7 +234,7 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
             '[UP]'+str(pie.update_count))
 
         if(max_reward1.full()):
-            if(np.mean(max_reward1.queue) >= 195):
+            if(np.mean(max_reward1.queue) >= 200):
                 break
 
 P('Finished Training!')

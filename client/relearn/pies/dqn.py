@@ -6,7 +6,7 @@ import torch as T
 import torch.nn as nn
 #import torch.optim as optim
 #import torch.nn.functional as F
-
+from relearn.pies.utils import RMSprop_update
 from copy import deepcopy
 
 
@@ -119,7 +119,7 @@ class PIE:
             T.tensor(reward, dtype=T.float32).to(self.device), \
             T.tensor(done, dtype=T.float32).to(self.device)
 
-    def learn(self, memory, batch_size):
+    def learn(self, memory, batch_size, step=False):
         steps, indices, cS, nS, act, reward, done = self._prepare_batch(
             memory, batch_size)
         target_val = self.T(nS)
@@ -147,19 +147,47 @@ class PIE:
 
         grad_dict = {}
         grads = []
-        params = []
-        for param in self.Q.named_parameters():
-            params.append(param[1])
-            grads.append(param[1].grad)
-            grad_dict[param[0]] = param[1].grad.tolist()
+        params_with_grad=[]
+#         params = []
+        square_avgs = []
+        lr=0.01
+        alpha=0.9
+        eps=0
+        weight_decay=0
+#         for param in self.Q.named_parameters():
+#             params.append(param[1])
+#             grads.append(param[1].grad)
+#             grad_dict[param[0]] = param[1].grad.data.detach().clone().tolist()
+        for group in self.optimizer.param_groups:
+            lr=group['lr']
+            alpha=group['alpha']
+            eps=group['eps']
+            weight_decay=group['weight_decay']
+#             print("Lr: ", lr, "alpha: ", alpha, "eps: ", eps, "Weight-decay: ", weight_decay, "Centered: ", group['centered'])
+            for p in group['params']:
+                if p.grad is None:
+                    continue
+                params_with_grad.append(p)
 
-        with T.no_grad():
-            for i, param in enumerate(params):
+                if p.grad.is_sparse:
+                    raise RuntimeError('RMSprop does not support sparse gradients')
+                grads.append(p.grad.data.detach().clone().tolist())
+                state = self.optimizer.state[p]
+                if len(state) == 0:
+                    state['step'] = 0
+                    state['square_avg'] = T.zeros_like(p, memory_format=T.preserve_format)
+                square_avgs.append(state['square_avg'])
+                state['step'] += 1
+        if step:
+            RMSprop_update(params_with_grad,
+                    grads,
+                    square_avgs,
+                    weight_decay,
+                    lr,
+                    eps,                 
+                    alpha)
+#         self.optimizer.step()
 
-                d_p = deepcopy(grads[i])
-
-                alpha = -self.lr
-                param.add_(d_p, alpha=alpha)
 
         self.train_count += 1
 
@@ -167,8 +195,8 @@ class PIE:
             if self.train_count % self.tuf == 0:
                 self.T.load_state_dict(self.Q.state_dict())
                 self.update_count += 1
-
-        return grad_dict
+        self.optimizer.zero_grad()
+        return grads
 
     def render(self, mode=0, p=print):
         p('=-=-=-=-==-=-=-=-=\nQ-NET\n=-=-=-=-==-=-=-=-=')
