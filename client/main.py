@@ -29,10 +29,10 @@ LOG_CSV = 'epoch,reward,tr,up\n'
 # SETUP Hyperparameters
 ##############################################
 ALIAS = 'experiment_01'
-ENV_NAME = 'CartPole-v0'
+ENV_NAME = 'Breakout-ram-v0'
 
 # API endpoint
-URL = "http://localhost:5500/api/model/"
+URL = "http://localhost:5501/api/model/"
 
 
 class INFRA:
@@ -43,7 +43,7 @@ class INFRA:
 
 
 EXP_PARAMS = INFRA()
-EXP_PARAMS.MEM_CAP = 50000
+EXP_PARAMS.MEM_CAP = 5000000
 EXP_PARAMS.EPST = (0.95, 0.05, 0.95)  # (start, min, max)
 EXP_PARAMS.DECAY_MUL = 0.99999
 EXP_PARAMS.DECAY_ADD = 0
@@ -60,12 +60,12 @@ PIE_PARAMS.TUF = 4
 PIE_PARAMS.DEV = 'cpu'
 
 TRAIN_PARAMS = INFRA()
-TRAIN_PARAMS.EPOCHS = 50000
+TRAIN_PARAMS.EPOCHS = 20000000
 TRAIN_PARAMS.MOVES = 10
 TRAIN_PARAMS.EPISODIC = False
 TRAIN_PARAMS.MIN_MEM = 30
 TRAIN_PARAMS.LEARN_STEPS = 1
-TRAIN_PARAMS.BATCH_SIZE = 50
+TRAIN_PARAMS.BATCH_SIZE = 64
 TRAIN_PARAMS.TEST_FREQ = 20
 
 TEST_PARAMS = INFRA()
@@ -225,9 +225,12 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
 
         LOG_CSV += f'{str(epoch+1)},{str(trew)},{str(pie.train_count)},{str(pie.update_count)}\n'
 
-        if(max_reward1.full()):
-            if(np.mean(max_reward1.queue) >= 200):
-                break
+        if trew == 2600:
+            break
+
+        # if(max_reward1.full()):
+        #     if(np.mean(max_reward1.queue) >= 200):
+        #         break
 
 P('Finished Training!')
 elapse = now() - stamp
