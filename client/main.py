@@ -160,6 +160,7 @@ max_reward3 = Queue(maxsize=4)
 P('after max_reward queue')
 exp.reset(clear_mem=True, reset_epsilon=True)
 txp.reset(clear_mem=True, reset_epsilon=True)
+n_steps=20 #number of steps to learn then send params
 
 for epoch in range(0, TRAIN_PARAMS.EPOCHS):
 
@@ -171,15 +172,15 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
 
         for _ in range(TRAIN_PARAMS.LEARN_STEPS):
             # Single Learning Step
-            grads = pie.learn(exp.memory, TRAIN_PARAMS.BATCH_SIZE)
+            pie.learn(exp.memory, TRAIN_PARAMS.BATCH_SIZE)
 
             # Send Gradients to Server
-            reply = modman.send_model_update(URL + 'update', grads)
-            # print(reply)
-
-            # Get Updated Model Params from Server
-            global_params, is_available = modman.fetch_params(URL + 'get')
-            pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
+            if n_steps:
+                reply = modman.send_model_update(URL + 'post_params', pie.Q.state_dict(),exp.memory.count, n_steps,None)
+                print(reply)
+                # Get Updated Model Params from Server
+                global_params, is_available = modman.fetch_params(URL + 'get')
+                pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
 
     # P("after explore epoch#:",epoch)
     if epoch == 0 or (epoch+1) % TRAIN_PARAMS.TEST_FREQ == 0:

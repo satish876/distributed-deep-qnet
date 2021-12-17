@@ -16,31 +16,18 @@ def fetch_params(url: str):
         return {}, False
     else:
         return data['params'], True
+# remove send gradient method as we are not dealing with gradients in FL
+
+# Send Trained Model Params (StateDict)
 
 
-# Send Trained Model Gradients (StateDict)
-def send_model_update(url: str, grads: dict):
+def send_model_params(url: str, params: dict, mem_size: int, steps: int, itr: int):
     body = {
-        'grads': grads,
-        'pid': getpid()
-    }
-
-    # Send POST request
-    r = requests.post(url=url, json=body)
-
-    # Extract data in json format
-    data = r.json()
-
-    return data
-
-# Send Trained Model Gradients (StateDict)
-
-
-def send_model_params(url: str, params: dict, lr: float):
-    body = {
+        'iteration': itr,
         'model': params,
-        'learning_rate': lr,
-        'pid': getpid()
+        'pid': getpid(),
+        'mem_size': mem_size,
+        'steps': steps
     }
 
     # Send POST request

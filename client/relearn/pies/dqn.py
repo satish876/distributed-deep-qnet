@@ -137,38 +137,11 @@ class PIE:
         target = pred.detach().clone()
         target[indices, act[indices]] = updated_q_values[indices]
         loss = self.loss_fn(pred, target)  # T.tensor()
-
-        # this does not happen
-        #target[indices, act[indices]] = updated_q_values[indices]*(self.theta) + target[indices, act[indices]]*(1-self.theta)
-
+        
         # Backpropagation
         self.optimizer.zero_grad()
         loss.backward()
-
-        grad_dict = {}
-        grads = []
-        params = []
-        for param in self.Q.named_parameters():
-            params.append(param[1])
-            grads.append(param[1].grad)
-            grad_dict[param[0]] = param[1].grad.tolist()
-
-        with T.no_grad():
-            for i, param in enumerate(params):
-
-                d_p = deepcopy(grads[i])
-
-                alpha = -self.lr
-                param.add_(d_p, alpha=alpha)
-
-        self.train_count += 1
-
-        if (self.tuf > 0):
-            if self.train_count % self.tuf == 0:
-                self.T.load_state_dict(self.Q.state_dict())
-                self.update_count += 1
-
-        return grad_dict
+        self.optimizer.step()
 
     def render(self, mode=0, p=print):
         p('=-=-=-=-==-=-=-=-=\nQ-NET\n=-=-=-=-==-=-=-=-=')
