@@ -142,6 +142,12 @@ class PIE:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+        self.train_count+=1
+
+        if (self.tuf>0):
+            if self.train_count % self.tuf == 0:
+                self.T.load_state_dict(self.Q.state_dict())
+                self.update_count+=1
 
     def render(self, mode=0, p=print):
         p('=-=-=-=-==-=-=-=-=\nQ-NET\n=-=-=-=-==-=-=-=-=')

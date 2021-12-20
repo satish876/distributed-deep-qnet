@@ -1,5 +1,6 @@
 from typing import List
 import torch
+import numpy as np
 
 
 def update_model(grads: dict, global_model: dict, learning_rate: float) -> dict:
@@ -29,7 +30,7 @@ def Federated_average(list_of_params):
     if(len(list_of_params)<1):
         print("Error gradient list is empty")
         return
-    average_gradient=[]
+    average_gradient={}
     total_sample=0
     for _,x in list_of_params:
         total_sample += x
@@ -43,12 +44,14 @@ def Federated_average(list_of_params):
             list_of_params[indices][0][layer_names[j]]=np.multiply(list_of_params[indices][0][layer_names[j]],sample_size/total_sample)
         
     for indices in range(len(list_of_params)):
-        layer_names=[]
-        if indices==0:
-            average_gradient=list_of_params[0][0]
-            continue
+        layer_names=[]        
         for x in (list_of_params[indices][0]):
             layer_names.append(x)
+        if indices==0:
+            for i in range(len(layer_names)):
+                # print("params->",list_of_params[indices][0][layer_names[i]].tolist())
+                average_gradient[layer_names[i]]=np.array(list_of_params[indices][0][layer_names[i]]).tolist()
+            continue
         for i in range(len(layer_names)):            
-            average_gradient[layer_names[i]]=np.add(average_gradient[layer_names[i]],list_of_params[indices][0][layer_names[i]])
+            average_gradient[layer_names[i]]=np.add(average_gradient[layer_names[i]],list_of_params[indices][0][layer_names[i]]).tolist()
     return average_gradient;

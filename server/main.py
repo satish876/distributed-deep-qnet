@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 CENTRAL_MODEL = {}
 LEARNING_RATE = 0.001
 ITERATION = -1
-ALL_PARAMS=[]
+ALL_PARAMS={}
 SCORES={}
 U_TIME_STAMP = None
 WTS=10
@@ -25,8 +25,8 @@ MODEL_LOCK = False
 
 #Start  Supporting functions
 def register(add):
-    SCORES[add]==1
-def get_score(add):
+    SCORES[add] = 1
+def add_score(add):
     if add in SCORES:
         return SCORES[add]
     else:
@@ -41,14 +41,14 @@ def collect_params():
     global ALL_PARAMS
     global SCORES
     all_params=[]
-    for x in ALL_PARAMS:
+    for x in ALL_PARAMS.values():
         valid, params = correctness(x)
         if valid:
-            SCORES[x.client] +=1
+            SCORES[x.client_key] +=1
             all_params.append(params)
         else:
-            SCORES[x.client] -=1
-
+            SCORES[x.client_key] -=1
+    return all_params
 #End Supporting functions
 
 app = Flask(__name__)
@@ -95,7 +95,6 @@ def set_model():
     global MODEL_LOCK
     MODEL_LOCK = True
     CENTRAL_MODEL = params['model']
-    LEARNING_RATE = params['learning_rate']
     MODEL_LOCK = False
 
     # RETURN RESPONSE
@@ -115,17 +114,18 @@ def update_model():
     MODEL_LOCK = True
     CENTRAL_MODEL = modman.Federated_average(list_of_params)
     MODEL_LOCK = False
-    ALL_PARAMS = []
+    ALL_PARAMS = {}
     # PRINT RESPONSE
     print('iteration :', ITERATION,' Updated Model Params.')
 
 @app.route('/api/model/post_params', methods=['POST'])
 def post_params():
     update_params = request.get_json()
-    key=request.remote_addr+":"+update_params["pid"]
+    key=request.remote_addr+":"+str(update_params["pid"])
+    print(add_score(key))
     c_params = CParamas()
     c_params.client_key=key
-    c_params.params=update_params['params']
+    c_params.params=update_params['model']
     c_params.mem_size=update_params['mem_size']
     c_params.iteration=update_params['iteration']
     print(
@@ -136,10 +136,10 @@ def post_params():
     global WTS #waiting time stamp
     if (len(ALL_PARAMS))==0:
         U_TIME_STAMP=datetime.now()+timedelta(seconds=WTS)
-    elif U_TIME_STAMP<datetime.now() or len(ALL_PARAMS)==4 :
+    elif U_TIME_STAMP<datetime.now() or len(ALL_PARAMS)==3 :
         update_model()
     # Storing params
-    ALL_PARAMS.append(c_params)
+    ALL_PARAMS[key]=c_params
 
     # RETURN RESPONSE
     return jsonify({'iteration': ITERATION, 'Message': 'Collected Model Params.'})

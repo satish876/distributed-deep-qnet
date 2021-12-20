@@ -21,7 +21,7 @@ def fetch_params(url: str):
 # Send Trained Model Params (StateDict)
 
 
-def send_model_params(url: str, params: dict, mem_size: int, steps: int, itr: int):
+def send_model_update(url: str, params: dict, mem_size: int, steps: int, itr: int):
     body = {
         'iteration': itr,
         'model': params,
