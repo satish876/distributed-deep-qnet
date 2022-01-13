@@ -26,8 +26,16 @@ now = datetime.datetime.now
 ALIAS = 'experiment_01'
 ENV_NAME = 'CartPole-v0'
 
+# For test locally -> ..
 # API endpoint
-URL = "http://localhost:5500/api/model/"
+#URL = "http://localhost:5500/api/model/"  # Un comment this line if you wanna test locally
+# ..
+
+# For test in the server and sepertade clients ...
+# ip_address = "localhost"
+ip_address = "172.16.26.25"  # server macine ip address
+# API endpoint
+URL = "http://"+ip_address+":5501/api/model/"
 
 
 class INFRA:
@@ -131,7 +139,7 @@ target = DQN.PIE(
     tuf=PIE_PARAMS.TUF,
     seed=None)
 
-n_steps=20 #number of steps to learn then send params
+n_steps = 20  # number of steps to learn then send params
 
 ##############################################
 # Fetch Initial Model Params (If Available)
@@ -139,10 +147,11 @@ n_steps=20 #number of steps to learn then send params
 global_params, is_available = modman.fetch_params(URL + 'get')
 
 if is_available:
+    print("AVAILABLE")
     pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
 else:
     reply = modman.send_model_update(
-        URL + 'set', modman.convert_tensor_to_list(pie.Q.state_dict()), exp.memory.count, n_steps,None)
+        URL + 'set', modman.convert_tensor_to_list(pie.Q.state_dict()), exp.memory.count, n_steps, None)
     print(reply)
 
 ##############################################
@@ -154,7 +163,7 @@ stamp = now()
 eps = []
 ref = []
 
-max_reward1 = Queue(maxsize=10)
+max_reward1 = Queue(maxsize=100)
 
 P('after max_reward queue')
 exp.reset(clear_mem=True, reset_epsilon=True)
@@ -174,14 +183,16 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
             pie.learn(exp.memory, TRAIN_PARAMS.BATCH_SIZE)
 
             # Send Gradients to Server
-            if (epoch+1)%n_steps==0:
+            if (epoch+1) % n_steps == 0:
                 reply = modman.send_model_update(URL + 'post_params',
-                 modman.convert_tensor_to_list(pie.Q.state_dict()),
-                 exp.memory.count, n_steps,None)
+                                                 modman.convert_tensor_to_list(
+                                                     pie.Q.state_dict()),
+                                                 exp.memory.count, n_steps, None)
                 print(reply)
                 # Get Updated Model Params from Server
                 global_params, is_available = modman.fetch_params(URL + 'get')
-                pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
+                pie.Q.load_state_dict(
+                    modman.convert_list_to_tensor(global_params))
 
     # P("after explore epoch#:",epoch)
     if epoch == 0 or (epoch+1) % TRAIN_PARAMS.TEST_FREQ == 0:
