@@ -4,6 +4,7 @@ import numpy as np
 
 
 def update_model(grads: dict, global_model: dict, learning_rate: float) -> dict:
+    #print("update_model", "*"*50)
     for key in global_model.keys():
         if key in grads.keys():
             global_model[key] = _apply_grads(
@@ -28,6 +29,7 @@ def _apply_grads(param: list, grad: list, lr: float):
 
 
 def Federated_average(list_of_params):
+    #print("federated_average", "*"*50)
     if(len(list_of_params) < 1):
         print("Error gradient list is empty")
         return

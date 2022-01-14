@@ -114,6 +114,7 @@ def set_model():
 
 
 def update_model():
+    #print("in here ", "*"*50)
     global CENTRAL_MODEL
     global LEARNING_RATE
     global ITERATION
@@ -148,13 +149,17 @@ def post_params():
     global ALL_PARAMS
     global U_TIME_STAMP  # updating time stamp
     global WTS  # waiting time stamp
+    '''
     if (len(ALL_PARAMS)) == 0:
         U_TIME_STAMP = datetime.now()+timedelta(seconds=WTS)
     elif U_TIME_STAMP < datetime.now() or len(ALL_PARAMS) == 3:
+        print(U_TIME_STAMP < datetime.now(), len(ALL_PARAMS) == 3, "<","="*50)
         update_model()
+    '''
     # Storing params
     ALL_PARAMS[key] = c_params
-
+    
+    update_model()
     # RETURN RESPONSE
     return jsonify({'iteration': ITERATION, 'Message': 'Collected Model Params.'})
 
