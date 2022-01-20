@@ -119,6 +119,7 @@ def update_model():
     global LEARNING_RATE
     global ITERATION
     global ALL_PARAMS
+
     list_of_params = collect_params()
     # Update ITERATION
     ITERATION += 1
@@ -149,6 +150,10 @@ def post_params():
     global ALL_PARAMS
     global U_TIME_STAMP  # updating time stamp
     global WTS  # waiting time stamp
+    
+    while len(ALL_PARAMS) > 1:
+        pass
+
     '''
     if (len(ALL_PARAMS)) == 0:
         U_TIME_STAMP = datetime.now()+timedelta(seconds=WTS)
@@ -165,4 +170,4 @@ def post_params():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True, port=5501)
+    app.run(host="0.0.0.0", port=5501)
