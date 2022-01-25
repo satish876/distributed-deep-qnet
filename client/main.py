@@ -16,7 +16,7 @@ from queue import Queue
 import gym
 
 from copy import deepcopy
-
+import os
 
 now = datetime.datetime.now
 
@@ -189,7 +189,7 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
                                                  modman.convert_tensor_to_list(
                                                      pie.Q.state_dict()),
                                                  exp.memory.count, n_steps, client_iteration)
-                print(reply)
+                print(os.getpid(), client_iteration, "=====>", reply)
                 # Get Updated Model Params from Server
                 global_params, is_available, client_iteration = modman.fetch_params(URL + 'get')
                 pie.Q.load_state_dict(
