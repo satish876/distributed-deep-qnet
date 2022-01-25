@@ -32,8 +32,8 @@ ENV_NAME = 'CartPole-v0'
 # ..
 
 # For test in the server and sepertade clients ...
-# ip_address = "localhost"
-ip_address = "172.16.26.25"  # server macine ip address
+ip_address = "localhost"
+# ip_address = "172.16.26.25"  # server macine ip address
 # API endpoint
 URL = "http://"+ip_address+":5501/api/model/"
 
@@ -144,8 +144,8 @@ n_steps = 20  # number of steps to learn then send params
 ##############################################
 # Fetch Initial Model Params (If Available)
 ##############################################
-global_params, is_available = modman.fetch_params(URL + 'get')
-
+global_params, is_available, client_iteration = modman.fetch_params(URL + 'get')
+# client_iteration = -1
 if is_available:
     print("AVAILABLE")
     pie.Q.load_state_dict(modman.convert_list_to_tensor(global_params))
@@ -184,13 +184,14 @@ for epoch in range(0, TRAIN_PARAMS.EPOCHS):
 
             # Send Gradients to Server
             if (epoch+1) % n_steps == 0:
+                # client_iteration += 1
                 reply = modman.send_model_update(URL + 'post_params',
                                                  modman.convert_tensor_to_list(
                                                      pie.Q.state_dict()),
-                                                 exp.memory.count, n_steps, None)
+                                                 exp.memory.count, n_steps, client_iteration)
                 print(reply)
                 # Get Updated Model Params from Server
-                global_params, is_available = modman.fetch_params(URL + 'get')
+                global_params, is_available, client_iteration = modman.fetch_params(URL + 'get')
                 pie.Q.load_state_dict(
                     modman.convert_list_to_tensor(global_params))
 
