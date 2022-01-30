@@ -1,6 +1,6 @@
+from logging import exception
 from flask import Flask, Response, jsonify, request, render_template
-from ib_insync import client
-from pytest import param
+
 import modman
 from datetime import datetime, timedelta
 
@@ -23,9 +23,9 @@ def hello():
 
 @app.route('/api/model/get', methods=['GET'])
 def get_model():
+    global GLOBAL_PARAMS, LOCK
     while LOCK:
         pass
-    global GLOBAL_PARAMS
     payload = {
         'params': GLOBAL_PARAMS,
         'iteration': ITERATION
@@ -35,9 +35,9 @@ def get_model():
 
 @app.route('/api/model/set', methods=['POST'])
 def set_model():
+    global GLOBAL_PARAMS, ITERATION, KEYS, LOCK
     while LOCK:
         pass
-    global GLOBAL_PARAMS, ITERATION, KEYS
     params = request.get_json()
 
     GLOBAL_PARAMS = params['model']#{key: params['model'][key].tolist() for key in KEYS}
@@ -49,9 +49,9 @@ def set_model():
 
 @app.route('/api/model/post_params', methods=['POST'])
 def post_params():
+    global GLOBAL_PARAMS, ITERATION, UPDATES, LOCK
     while LOCK:
         pass
-    global GLOBAL_PARAMS, ITERATION, UPDATES
     params = request.get_json()
     client_iteration = params['iteration']
 
@@ -92,8 +92,16 @@ def federated_average():
 
     for key in KEYS:
         # discount_factor = 
-        arr = [ np.multiply(UPDATES[_][1]/total_count, UPDATES[_][0][key]) for _ in UPDATES]
-        result[key] = np.sum(arr, axis=0).tolist()
+        try:
+            arr = [ np.multiply(UPDATES[_][1]/total_count, UPDATES[_][0][key]) for _ in UPDATES]
+            result[key] = np.sum(arr, axis=0).tolist()
+        except Exception as e:
+            print("="*100)
+            print("="*100)
+            print(e)
+            print("\n","="*100)
+            print("\n","="*100)
+    
     GLOBAL_PARAMS = result
     ITERATION += 1
     LOCK = False
