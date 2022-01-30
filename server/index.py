@@ -8,6 +8,9 @@ import numpy as np
 
 app = Flask(__name__)
 
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 ITERATION = -1
 QUEUE = []
@@ -69,11 +72,12 @@ def post_params():
     else:
         client_id = get_client_id(params)
         if client_id in UPDATES and UPDATES[client_id][2] >= client_iteration:
-            print('='*30, "BUG", "="*30)
+            print('='*30, "BUG", "="*30, client_id, client_iteration, ITERATION)
         
         UPDATES[client_id] = [params['model'], params['mem_size'], client_iteration]
-        if len(UPDATES) == 2:
+        if len(UPDATES) == 3:
             federated_average()
+            print("client", "*"*30, ">", client_id, client_iteration, ITERATION)
             UPDATES = {}
         return jsonify({'iteration': ITERATION, 'Message': 'Collected Model Params.'})
 
