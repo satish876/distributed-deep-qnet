@@ -72,6 +72,7 @@ def post_params():
     else:
         client_id = get_client_id(params)
         if client_id in UPDATES and UPDATES[client_id][2] >= client_iteration:
+            return jsonify({'iteration': ITERATION, 'Message': 'Rejected'})
             print('='*30, "BUG", "="*30, client_id, client_iteration, ITERATION)
         
         UPDATES[client_id] = [params['model'], params['mem_size'], client_iteration]
